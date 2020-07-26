@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-# coding: utf-8
-# File: chatbot_graph.py
-# Author: lhy<lhy_in_blcu@126.com,https://huangyong.github.io>
-# Date: 18-10-4
+# encoding: utf-8
+import json
+import os
+import random
+import requests
 
-# -*- coding: utf-8 -*-
 from opencc import OpenCC
 from question_classifier import *
 from question_parser import *
@@ -13,7 +12,9 @@ from answer_search import *
 cc1 = OpenCC('tw2sp') #繁體中文 (台灣) -> 簡體中文 (包含慣用詞轉換 )
 cc2 = OpenCC('s2twp') #簡體中文 -> 繁體中文 (台灣, 包含慣用詞轉換)
 
-'''问答类'''
+handler = ChatBotGraph()
+
+#================== ChatBot 區段
 class ChatBotGraph:
     def __init__(self):
         self.classifier = QuestionClassifier()
@@ -21,7 +22,7 @@ class ChatBotGraph:
         self.searcher = AnswerSearcher()
 
     def chat_main(self, sent):
-        answer = '您好，我是小勇医药智能助理，希望可以帮到您。如果没答上来，可联系https://liuhuanyong.github.io/。祝您身体棒棒！'
+        answer = '您好，我是居家護理智慧小助理。'
         res_classify = self.classifier.classify(sent)
         if not res_classify:
             return answer
@@ -32,12 +33,67 @@ class ChatBotGraph:
         else:
             return '\n'.join(final_answers)
 
-if __name__ == '__main__':
-    handler = ChatBotGraph()
-    while 1:
-        question = input('用户:')
-        question = cc1.convert(question)
-        answer = handler.chat_main(question)
-        answer = cc2.convert(answer)
-        print('小勇:', answer)
+#================== LineBot 區段
 
+from flask import Flask, request, abort
+
+from linebot import (
+    LineBotApi, WebhookHandler
+)
+from linebot.exceptions import (
+    InvalidSignatureError
+)
+from linebot.models import (
+    MessageEvent, TextMessage, TextSendMessage,
+    LocationMessage,
+    TemplateSendMessage, ButtonsTemplate, URITemplateAction,
+)
+
+
+app = Flask(__name__)
+
+# 使用環境變數，才不會外洩秘密
+handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
+line_bot_api = LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
+
+@app.route('/')
+def index():
+    return "<p>Hello World!</p>"
+
+@app.route("/callback", methods=['POST'])
+def callback():
+    # get X-Line-Signature header value
+    signature = request.headers['X-Line-Signature']
+
+    # get request body as text
+    body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+
+    # handle webhook body
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+
+    return 'OK'
+
+# ================= 機器人區塊 Start =================
+@handler.add(MessageEvent, message=TextMessage)  # default
+def handle_text_message(event):                  # default
+    msg = event.message.text # message from user
+    uid = event.source.user_id # user id
+
+    #============== 處理回覆
+    question = cc1.convert(msg)
+    answer = handler.chat_main(question)
+    answer = cc2.convert(answer)
+ 
+    msg = answer
+    line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=msg))
+
+# ================= 機器人區塊 End =================
+
+if __name__ == "__main__":
+     app.run(host='0.0.0.0',port=int(os.environ['PORT']))
