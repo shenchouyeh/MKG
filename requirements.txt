@@ -1,5 +1,5 @@
 line-bot-sdk
 flask
-ahocorasick-python
+pyahocorasick
 py2neo
 opencc-python-reimplemented
