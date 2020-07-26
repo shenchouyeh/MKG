@@ -12,8 +12,6 @@ from answer_search import *
 cc1 = OpenCC('tw2sp') #繁體中文 (台灣) -> 簡體中文 (包含慣用詞轉換 )
 cc2 = OpenCC('s2twp') #簡體中文 -> 繁體中文 (台灣, 包含慣用詞轉換)
 
-handler = ChatBotGraph()
-
 #================== ChatBot 區段
 class ChatBotGraph:
     def __init__(self):
@@ -34,6 +32,7 @@ class ChatBotGraph:
             return '\n'.join(final_answers)
 
 #================== LineBot 區段
+handler0 = ChatBotGraph()
 
 from flask import Flask, request, abort
 
@@ -85,7 +84,7 @@ def handle_text_message(event):                  # default
 
     #============== 處理回覆
     question = cc1.convert(msg)
-    answer = handler.chat_main(question)
+    answer = handler0.chat_main(question)
     answer = cc2.convert(answer)
  
     msg = answer
