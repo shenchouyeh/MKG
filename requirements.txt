@@ -2,5 +2,4 @@ line-bot-sdk
 flask
 ahocorasick-python
 py2neo
-json
 pencc-python-reimplemented
