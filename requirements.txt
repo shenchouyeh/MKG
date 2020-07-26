@@ -1,3 +1,5 @@
+line-bot-sdk
+flask
 ahocorasick
 py2neo
 json
