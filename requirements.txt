@@ -1,6 +1,6 @@
 line-bot-sdk
 flask
-ahocorasick
+ahocorasick-python
 py2neo
 json
 pencc-python-reimplemented
