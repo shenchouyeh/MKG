@@ -20,7 +20,8 @@ class ChatBotGraph:
         self.searcher = AnswerSearcher()
 
     def chat_main(self, sent):
-        answer = '您好，我是居家護理智慧小助理。'
+        #answer = '您好，我是居家護理智慧小助理。'
+        answer = '目前還不會解析您的問題。'
         res_classify = self.classifier.classify(sent)
         if not res_classify:
             return answer
